@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Cart.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     public class CartController : ControllerBase
     {
         private readonly IItemAddedEventPublisher _itemAddedEvent;
