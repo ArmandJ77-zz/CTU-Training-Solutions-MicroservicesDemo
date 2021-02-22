@@ -42,11 +42,10 @@ namespace Orders.Events.Subscribers
             return Task.CompletedTask;
         }
 
-        public class ItemAddedEvent
+        public class CartItemAddedEvent
         {
             public long Id { get; set; }
             public int Qty { get; set; }
         }
-
     }
 }
