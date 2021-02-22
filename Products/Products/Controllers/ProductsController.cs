@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Products.Database;
 using Products.DTO;
+using System;
+using System.Threading.Tasks;
 
 namespace Products.Controllers
 {
@@ -8,30 +12,28 @@ namespace Products.Controllers
     [Route("[controller]")]
     public class ProductsController : ControllerBase
     {
-        [HttpGet]
-        public IActionResult Get()
+        private readonly ProductsDbContext _dbContext;
+
+        public ProductsController(ProductsDbContext dbContext)
         {
-            return Ok(new List<ProductDto>
-            {
-                new ProductDto
-                {
-                    Id = 0,
-                    Name = "Alienware M15 R3",
-                    Qty = 5
-                },
-                new ProductDto
-                {
-                    Id = 1,
-                    Name = "Asus ROG Zephyrus G14",
-                    Qty = 4
-                },
-                new ProductDto
-                {
-                    Id = 3,
-                    Name = "Razer Blade Pro",
-                    Qty = 2
-                }
-            });
+            _dbContext = dbContext;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAsync()
+        {
+            var result = await _dbContext.Products.ToListAsync();
+
+            return Ok(result);
+        }
+
+        [HttpDelete("{id}/{qty}")]
+        public async Task<IActionResult> DecreaseProductQuantityAsync(long id, int qty)
+        {
+
+
+            return Ok();
+
         }
     }
 }
