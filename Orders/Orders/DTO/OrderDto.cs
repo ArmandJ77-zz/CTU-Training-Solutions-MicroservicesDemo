@@ -1,7 +1,8 @@
-﻿namespace Cart.DTO
+﻿namespace Orders.DTO
 {
-    public class CartItemDto
+    public class OrderDto
     {
+        public long Id { get; set; }
         public long ProductId { get; set; }
         public int Qty { get; set; }
     }

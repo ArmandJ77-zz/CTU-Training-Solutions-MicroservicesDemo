@@ -1,8 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using Orders.Database;
-using Orders.Domain.Order.Handlers;
+using Orders.Domain.Stock.Handlers;
 using Orders.DTO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -13,16 +11,14 @@ using System.Threading.Tasks;
 
 namespace Orders.Events.Subscribers
 {
-    public class ItemCreatedEventSubscriber : BackgroundService
+    public class StockShortageEventSubscription : BackgroundService
     {
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IOrderCreateHandler _orderCreateHandler;
-        private const string QueueName = "cart-item-added";
+        private readonly IStockShortageHandler _handler;
+        private const string QueueName = "stock-shortage";
 
-        public ItemCreatedEventSubscriber(IServiceScopeFactory scopeFactory, IOrderCreateHandler orderCreateHandler)
+        public StockShortageEventSubscription(IStockShortageHandler handler)
         {
-            _scopeFactory = scopeFactory;
-            _orderCreateHandler = orderCreateHandler;
+            _handler = handler;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,17 +41,16 @@ namespace Orders.Events.Subscribers
             {
                 var body = e.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                var cartItemAddedEvent = JsonConvert.DeserializeObject<CartItemAddedEvent>(Encoding.UTF8.GetString(body));
+                var stockShortageEvent =
+                    JsonConvert.DeserializeObject<StockShortageEvent>(Encoding.UTF8.GetString(body));
 
-                var order = new OrderDto
+                var dto = new StockShortageDto
                 {
-                    ProductId = cartItemAddedEvent.ProductId,
-                    Qty = cartItemAddedEvent.Qty
+                    ProductId = stockShortageEvent.ProductId,
+                    OrderId = stockShortageEvent.OrderId
                 };
 
-                using var scope = _scopeFactory.CreateScope();
-                var context = scope.ServiceProvider.GetService<OrdersDbContext>();
-                await _orderCreateHandler.HandleAsync(context, order, stoppingToken);
+                _handler.Handle(dto);
             };
 
             channel.BasicConsume(QueueName, true, consumer);
@@ -63,10 +58,10 @@ namespace Orders.Events.Subscribers
             return Task.CompletedTask;
         }
 
-        public class CartItemAddedEvent
+        public class StockShortageEvent
         {
+            public long OrderId { get; set; }
             public long ProductId { get; set; }
-            public int Qty { get; set; }
         }
     }
 }

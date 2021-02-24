@@ -39,11 +39,10 @@ namespace Cart.Events.Publishers
                 autoDelete: false,
                 arguments: null);
 
-            //Can use something like automapper here
             var cartItemAddedEvent = JsonConvert.SerializeObject(
                 new CartItemAddedEvent
                 {
-                    Id = dto.Id,
+                    ProductId = dto.ProductId,
                     Qty = dto.Qty
                 });
 
@@ -55,7 +54,7 @@ namespace Cart.Events.Publishers
 
     public class CartItemAddedEvent
     {
-        public long Id { get; set; }
+        public long ProductId { get; set; }
         public int Qty { get; set; }
     }
 }

@@ -39,7 +39,8 @@ namespace Products.Events.Subscribers
             consumer.Received += async (sender, e) =>
             {
                 var body = e.Body.ToArray();
-                var decreaseProductQuantityEvent = JsonConvert.DeserializeObject<DecreaseProductQuantityEvent>(Encoding.UTF8.GetString(body));
+                var decreaseProductQuantityEvent = JsonConvert.DeserializeObject<DecreaseProductQuantityEvent>
+                    (Encoding.UTF8.GetString(body));
 
                 var product = await _dbContext.Products.FindAsync(decreaseProductQuantityEvent.Id);
 

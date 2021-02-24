@@ -1,15 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Orders.Database;
+using Orders.Domain.Order.Handlers;
+using Orders.Domain.Stock.Handlers;
+using Orders.Events.Publishers;
 using Orders.Events.Subscribers;
 
 namespace Orders
@@ -27,6 +24,14 @@ namespace Orders
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
+
+            services.AddDbContext<OrdersDbContext>();
+
+            services.AddTransient<IOrderCreateHandler, OrderCreateHandler>();
+            services.AddTransient<IOrderPlacedPublisher, OrderPlacedPublisher>();
+            services.AddTransient<IStockConfirmedHandler, StockConfirmedHandler>();
+            services.AddTransient<IStockShortageHandler, StockShortageHandler>();
+
             services.AddHostedService<ItemCreatedEventSubscriber>();
         }
 
