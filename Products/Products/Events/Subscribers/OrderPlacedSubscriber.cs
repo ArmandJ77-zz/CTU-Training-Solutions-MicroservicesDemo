@@ -1,34 +1,34 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
-using Orders.Domain.Stock.Handlers;
-using Orders.DTO;
+using Products.Domain.Handler;
+using Products.DTO;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Orders.Database;
+using Products.Database;
 
-namespace Orders.Events.Subscribers
+namespace Products.Events.Subscribers
 {
-    public class StockConfirmedEventSubscriber : BackgroundService
+    public class OrderPlacedSubscriber : BackgroundService
     {
         private ConnectionFactory _connectionFactory;
         private IConnection _connection;
         private IModel _channel;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IStockConfirmedHandler _handler;
+        private readonly IProductCheckHandler _handler;
 
-        private const string QueueName = "stock-confimed";
+        private const string QueueName = "order-placed";
 
-        public StockConfirmedEventSubscriber(
-            IStockConfirmedHandler handler, 
-            IServiceScopeFactory scopeFactory)
+        public OrderPlacedSubscriber(
+            IServiceScopeFactory scopeFactory,
+            IProductCheckHandler productCheckHandler)
         {
-            _handler = handler;
             _scopeFactory = scopeFactory;
+            _handler = productCheckHandler;
         }
 
         public override Task StartAsync(CancellationToken cancellationToken)
@@ -61,26 +61,26 @@ namespace Orders.Events.Subscribers
             consumer.Received += (sender, e) =>
             {
                 var body = e.Body.ToArray();
-                var cartItemAddedEvent = JsonConvert.DeserializeObject<StockConfirmedEvent>(Encoding.UTF8.GetString(body));
-                var dto = new StockConfirmedDto
+                var orderPlacedEvent = JsonConvert.DeserializeObject<OrderPlacedEvent>(Encoding.UTF8.GetString(body));
+                var dto = new ProductDto
                 {
-                    ProductId = cartItemAddedEvent.ProductId,
-                    OrderId = cartItemAddedEvent.OrderId
+                    Id = orderPlacedEvent.ProductId,
+                    Qty = orderPlacedEvent.Qty,
+                    OrderId = orderPlacedEvent.ProductId
                 };
-
                 using var scope = _scopeFactory.CreateScope();
-                var context = scope.ServiceProvider.GetService<OrdersDbContext>();
+                var context = scope.ServiceProvider.GetService<ProductsDbContext>();
 
                 _handler.Handle(context, dto);
             };
 
             _channel.BasicConsume(QueueName, true, consumer);
         }
+    }
 
-        public class StockConfirmedEvent
-        {
-            public long ProductId { get; set; }
-            public long OrderId { get; set; }
-        }
+    public class OrderPlacedEvent
+    {
+        public long ProductId { get; set; }
+        public int Qty { get; set; }
     }
 }

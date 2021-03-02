@@ -15,52 +15,65 @@ namespace Orders.Events.Subscribers
 {
     public class ItemCreatedEventSubscriber : BackgroundService
     {
+        private ConnectionFactory _connectionFactory;
+        private IConnection _connection;
+        private IModel _channel;
         private readonly IServiceScopeFactory _scopeFactory;
-        private readonly IOrderCreateHandler _orderCreateHandler;
+        private readonly IOrderCreateHandler _handler;
+
         private const string QueueName = "cart-item-added";
 
-        public ItemCreatedEventSubscriber(IServiceScopeFactory scopeFactory, IOrderCreateHandler orderCreateHandler)
+        public ItemCreatedEventSubscriber(
+            IServiceScopeFactory scopeFactory,
+            IOrderCreateHandler orderCreateHandler)
         {
             _scopeFactory = scopeFactory;
-            _orderCreateHandler = orderCreateHandler;
+            _handler = orderCreateHandler;
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            _connectionFactory = new ConnectionFactory
+            {
+                UserName = "guest",
+                Password = "guest"
+            };
+            _connection = _connectionFactory.CreateConnection();
+            _channel = _connection.CreateModel();
+            _channel.QueueDeclarePassive(QueueName);
+            _channel.BasicQos(0, 1, false);
+
+            return base.StartAsync(cancellationToken);
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var factory = new ConnectionFactory
-            {
-                Uri = new Uri("amqp://guest:guest@localhost:5672")
-            };
+            stoppingToken.ThrowIfCancellationRequested();
 
-            using var connection = factory.CreateConnection();
-            using var channel = connection.CreateModel();
-            channel.QueueDeclare(QueueName,
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
+            var timer = new Timer(ConsumeEvent, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
-            var consumer = new EventingBasicConsumer(channel);
-            consumer.Received += async (sender, e) =>
+            return Task.CompletedTask;
+        }
+
+        private void ConsumeEvent(object state)
+        {
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += (sender, e) =>
             {
                 var body = e.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
                 var cartItemAddedEvent = JsonConvert.DeserializeObject<CartItemAddedEvent>(Encoding.UTF8.GetString(body));
-
-                var order = new OrderDto
+                var dto = new OrderDto
                 {
                     ProductId = cartItemAddedEvent.ProductId,
                     Qty = cartItemAddedEvent.Qty
                 };
-
                 using var scope = _scopeFactory.CreateScope();
                 var context = scope.ServiceProvider.GetService<OrdersDbContext>();
-                await _orderCreateHandler.HandleAsync(context, order, stoppingToken);
+
+                _handler.Handle(context, dto);
             };
 
-            channel.BasicConsume(QueueName, true, consumer);
-
-            return Task.CompletedTask;
+            _channel.BasicConsume(QueueName, true, consumer);
         }
 
         public class CartItemAddedEvent

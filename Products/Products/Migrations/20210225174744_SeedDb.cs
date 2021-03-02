@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace Products.Database
+namespace Products.Migrations
 {
-    public partial class SeedProducts : Migration
+    public partial class SeedDb : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

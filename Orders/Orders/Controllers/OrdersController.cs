@@ -8,8 +8,6 @@ namespace Orders.Controllers
     {
         [HttpGet]
         public IActionResult Get()
-        {
-            return Ok("Orders Service V1");
-        }
+            => Ok("Orders Service V1");
     }
 }

@@ -3,23 +3,24 @@ using RabbitMQ.Client;
 using System;
 using System.Text;
 
-namespace Orders.Events.Publishers
+namespace Products.Events.Publishers
 {
-    public interface IOrderPlacedPublisher
+    public interface IStockConfirmedPublisher
     {
-        void Publish(OrderPlacedEvent orderEvent);
+        void Publish(StockConfirmedEvent stockConfirmedEvent);
     }
 
-    public class OrderPlacedPublisher : IOrderPlacedPublisher
+    public class StockConfirmedPublisher: IStockConfirmedPublisher
     {
-        private const string QueueName = "order-placed";
+        private const string QueueName = "stock-confimed";
 
-        public void Publish(OrderPlacedEvent orderEvent)
+        public void Publish(StockConfirmedEvent stockConfirmedEvent)
         {
             var factory = new ConnectionFactory
             {
                 Uri = new Uri("amqp://guest:guest@localhost:5672")
             };
+
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
 
@@ -29,18 +30,14 @@ namespace Orders.Events.Publishers
                 autoDelete: false,
                 arguments: null);
 
-            var cartItemAddedEvent = JsonConvert.SerializeObject(orderEvent);
-
-            var body = Encoding.UTF8.GetBytes(cartItemAddedEvent);
+            var body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(stockConfirmedEvent));
 
             channel.BasicPublish("", QueueName, null, body);
         }
     }
-
-    public class OrderPlacedEvent
+    public class StockConfirmedEvent
     {
-        public long OrderId { get; set; }
         public long ProductId { get; set; }
-        public int Qty { get; set; }
+        public long OrderId { get; set; }
     }
 }

@@ -26,7 +26,7 @@ namespace Cart.Controllers
         {
             _itemAddedEvent.Publish(dto);
 
-            return CreatedAtAction(nameof(AddToCart), new { id = dto.Id }, dto);
+            return CreatedAtAction(nameof(AddToCart), new { id = dto.ProductId }, dto);
         }
     }
 }

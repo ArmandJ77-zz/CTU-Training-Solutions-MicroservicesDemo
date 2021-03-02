@@ -6,8 +6,8 @@ namespace Orders.Domain.Order
 {
     public static class Mapper
     {
-        public static OrderPlacedPublisher.OrderPlacedEvent ToOrderPlacedEvent(this OrderEntity entity)
-            => new OrderPlacedPublisher.OrderPlacedEvent
+        public static OrderPlacedEvent ToOrderPlacedEvent(this OrderEntity entity)
+            => new OrderPlacedEvent
             {
                 OrderId = entity.Id,
                 Qty = entity.Qty,

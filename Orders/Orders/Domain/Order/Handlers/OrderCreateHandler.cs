@@ -1,11 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Orders.DTO;
 using Orders.Events.Publishers;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Orders.Domain.Order.Handlers
 {
+    public interface IOrderCreateHandler
+    {
+        void Handle(DbContext dbContext, OrderDto dto);
+    }
+
     public class OrderCreateHandler : IOrderCreateHandler
     {
         private readonly IOrderPlacedPublisher _orderPlacedPublisher;
@@ -15,20 +18,16 @@ namespace Orders.Domain.Order.Handlers
             _orderPlacedPublisher = orderPlacedPublisher;
         }
 
-        public async Task HandleAsync(DbContext dbContext, OrderDto dto, CancellationToken cancellationToken)
+        public void Handle(DbContext dbContext, OrderDto dto)
         {
             var entity = dto.ToEntity();
 
-            await dbContext.AddAsync(entity, cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            dbContext.Add(entity);
+            dbContext.SaveChanges();
 
             var orderPlacedEvent = entity.ToOrderPlacedEvent();
+
             _orderPlacedPublisher.Publish(orderPlacedEvent);
         }
-    }
-
-    public interface IOrderCreateHandler
-    {
-        Task HandleAsync(DbContext dbContext, OrderDto dto, CancellationToken cancellationToken);
     }
 }
