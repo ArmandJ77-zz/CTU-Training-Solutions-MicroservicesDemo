@@ -25,13 +25,5 @@ namespace Products.Controllers
             var result = await _dbContext.Products.ToListAsync();
             return Ok(result);
         }
-
-        [HttpDelete("{id}/{qty}")]
-        public async Task<IActionResult> DecreaseProductQuantityAsync(long id, int qty)
-        {
-            //TODO move out into a handler
-            return Ok();
-
-        }
     }
 }
