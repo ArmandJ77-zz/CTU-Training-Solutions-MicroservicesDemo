@@ -25,7 +25,7 @@ This function should be called from the OrderPlacedSubscriber which consumes mes
 
 ## Diagram
 
-![diagram](http://url/to/img.png)
+![diagram](https://github.com/ArmandJ77/CTU-Training-Solutions-MicroservicesDemo/blob/main/diagram.PNG?raw=true)
 
 ## Prerequisites 
 
