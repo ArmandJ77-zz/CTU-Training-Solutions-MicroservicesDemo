@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Orders.Database;
 using Orders.Domain.Order.Handlers;
-using Orders.Domain.Stock.Handlers;
 using Orders.Events.Publishers;
 using Orders.Events.Subscribers;
 
@@ -29,9 +28,6 @@ namespace Orders
 
             services.AddTransient<IOrderCreateHandler, OrderCreateHandler>();
             services.AddTransient<IOrderPlacedPublisher, OrderPlacedPublisher>();
-            services.AddTransient<IStockConfirmedHandler, StockConfirmedHandler>();
-            services.AddTransient<IStockShortageHandler, StockShortageHandler>();
-
             services.AddHostedService<ItemCreatedEventSubscriber>();
         }
 
