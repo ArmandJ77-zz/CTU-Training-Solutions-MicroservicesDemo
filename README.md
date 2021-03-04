@@ -32,6 +32,7 @@ This function should be called from the OrderPlacedSubscriber which consumes mes
 - Docker
 - Dotnet Core 3.1
 - Visual Studio or VSCode
+- [Postman](https://www.postman.com/) 
 
 ## Getting started
 
