@@ -40,7 +40,10 @@ namespace Products.Events.Subscribers
             };
             _connection = _connectionFactory.CreateConnection();
             _channel = _connection.CreateModel();
-            _channel.QueueDeclarePassive(QueueName);
+            _channel.QueueDeclare(QueueName,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
             _channel.BasicQos(0, 1, false);
 
             return base.StartAsync(cancellationToken);

@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Products.Database;
-using Products.DTO;
-using System;
 using System.Threading.Tasks;
 
 namespace Products.Controllers
